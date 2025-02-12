@@ -34,18 +34,23 @@ async function translateText({ request, hf }) {
 }
 
 async function textToSpeach(request, hf) {
+	// Check if request is defined
 	if (!request) {
 		console.error("Request object is undefined");
-		return new Response(JSON.stringify({ error: "Internal server error" }), {
-			status: 500,
-			headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-		});
+		return new Response(
+			JSON.stringify({ error: "Request object is undefined" }),
+			{
+				status: 400,
+				headers: CORS_HEADERS,
+			}
+		);
 	}
 
 	try {
 		const requestBody = await request.json();
 		console.log("Request Body:", requestBody);
 
+		// Extract the 'text' field from the request body
 		const { text } = requestBody;
 
 		if (!text) {
@@ -54,20 +59,25 @@ async function textToSpeach(request, hf) {
 				JSON.stringify({ error: "Text field is missing in the request body" }),
 				{
 					status: 400,
-					headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+					headers: CORS_HEADERS,
 				}
 			);
 		}
 
-		const res = await hf.textToSpeech({
+		console.log("Calling Hugging Face textToSpeech API with text:", text);
+
+		// Call the Hugging Face API
+		const blob = await hf.textToSpeech({
+			// Rename 'res' to 'blob' for clarity
 			model: "espnet/kan-bayashi_ljspeech_vits",
 			inputs: text,
 		});
 
-		console.log({ res });
+		console.log("Response from Hugging Face API:", blob);
 
-		return new Response(JSON.stringify(res), {
-			headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+		// Send the binary response back to the client
+		return new Response(blob, {
+			headers: { ...CORS_HEADERS, "Content-Type": "audio/flac" },
 		});
 	} catch (error) {
 		console.error("Error processing request:", error);
