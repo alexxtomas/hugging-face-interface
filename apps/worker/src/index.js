@@ -1,21 +1,17 @@
 import { HfInference } from "@huggingface/inference";
 import { services } from "./lib/services.js";
-
-const corsHeaders = {
-	"Access-Control-Allow-Origin": "*",
-	"Access-Control-Allow-Methods": "GET, OPTIONS",
-	"Access-Control-Allow-Headers": "Content-Type",
-};
+import { CORS_HEADERS } from "./lib/constants.js";
 
 export default {
 	async fetch(request, env, ctx) {
+		console.log("Hugging Face Token:", env.HF_TOKEN);
 		if (request.method === "OPTIONS") {
-			return new Response(null, { headers: corsHeaders });
+			return new Response(null, { headers: CORS_HEADERS });
 		}
 		if (request.method !== "POST") {
 			return new Response(JSON.stringify({ error: "Method not allowed" }), {
 				status: 405,
-				headers: corsHeaders,
+				headers: CORS_HEADERS,
 			});
 		}
 		const url = new URL(request.url);
@@ -32,14 +28,14 @@ export default {
 				default:
 					return new Response(JSON.stringify({ error: "Path not found" }), {
 						status: 404,
-						headers: { ...corsHeaders, "Content-Type": "application/json" },
+						headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
 					});
 			}
 		} catch (error) {
 			console.error(error);
 			return new Response(JSON.stringify({ error: "Internal server error" }), {
 				status: 500,
-				headers: { ...corsHeaders, "Content-Type": "application/json" },
+				headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
 			});
 		}
 	},
