@@ -13,7 +13,6 @@ async function classifyText({ request, hf }) {
 }
 
 async function translateText({ request, hf }) {
-	console.log({ request });
 	if (!request) {
 		console.error("Request object is undefined");
 		return new Response(
@@ -47,17 +46,9 @@ async function translateText({ request, hf }) {
 
 		console.log("Response from Hugging Face API:", res);
 
-		const data = await res.json();
-		console.log("Data:", data);
-
-		return new Response(
-			JSON.stringify({
-				res,
-			}),
-			{
-				headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
-			}
-		);
+		return new Response(res, {
+			headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+		});
 	} catch (error) {
 		console.error("Error processing request:", error);
 		return new Response(JSON.stringify({ error: "Internal server error" }), {
