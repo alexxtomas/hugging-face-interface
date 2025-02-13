@@ -13,28 +13,61 @@ async function classifyText({ request, hf }) {
 }
 
 async function translateText({ request, hf }) {
-	const { textToTranslate } = await request.json();
-	const res = await hf.translation({
-		model: "facebook/mbart-large-50-many-to-many-mmt",
-		inputs: textToTranslate,
-		parameters: {
-			src_lang: "en_XX",
-			tgt_lang: "es_XX",
-		},
-	});
+	console.log({ request });
+	if (!request) {
+		console.error("Request object is undefined");
+		return new Response(
+			JSON.stringify({ error: "Request object is undefined" }),
+			{
+				status: 400,
+				headers: CORS_HEADERS,
+			}
+		);
+	}
+	try {
+		const { textToTranslate } = await request.json();
 
-	return new Response(
-		JSON.stringify({
-			res,
-		}),
-		{
-			headers: { ...corsHeaders, "Content-Type": "application/json" },
+		if (!textToTranslate) {
+			const errorMessage =
+				"'textToTranslate' field is missing in the request body";
+			console.error(errorMessage);
+			return new Response(JSON.stringify({ error: errorMessage }), {
+				status: 400,
+				headers: CORS_HEADERS,
+			});
 		}
-	);
+		const res = await hf.translation({
+			model: "facebook/mbart-large-50-many-to-many-mmt",
+			inputs: textToTranslate,
+			parameters: {
+				src_lang: "en_XX",
+				tgt_lang: "es_XX",
+			},
+		});
+
+		console.log("Response from Hugging Face API:", res);
+
+		const data = await res.json();
+		console.log("Data:", data);
+
+		return new Response(
+			JSON.stringify({
+				res,
+			}),
+			{
+				headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+			}
+		);
+	} catch (error) {
+		console.error("Error processing request:", error);
+		return new Response(JSON.stringify({ error: "Internal server error" }), {
+			status: 500,
+			headers: { ...CORS_HEADERS, "Content-Type": "application/json" },
+		});
+	}
 }
 
-async function textToSpeach(request, hf) {
-	// Check if request is defined
+async function textToSpeach({ request, hf }) {
 	if (!request) {
 		console.error("Request object is undefined");
 		return new Response(
@@ -50,7 +83,6 @@ async function textToSpeach(request, hf) {
 		const requestBody = await request.json();
 		console.log("Request Body:", requestBody);
 
-		// Extract the 'text' field from the request body
 		const { text } = requestBody;
 
 		if (!text) {

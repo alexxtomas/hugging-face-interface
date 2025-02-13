@@ -20,9 +20,9 @@ export default {
 		try {
 			switch (url.pathname) {
 				case "/translate-text":
-					return await services.translateText(request, hf);
+					return await services.translateText({ request, hf });
 				case "/text-to-speech":
-					return await services.textToSpeach(request, hf);
+					return await services.textToSpeach({ request, hf });
 				case "/classify-text":
 					return await services.classifyText(request, hf);
 				default:

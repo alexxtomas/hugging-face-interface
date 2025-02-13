@@ -5,6 +5,8 @@ import { toast } from "sonner";
 const PROD_URL =
 	"https://hugging-face-worker.openai-api-by-alextomas.workers.dev";
 
+const LOCAL_URL = "http://localhost:8787";
+
 function App() {
 	const [textToTranslate, setTextToTranslate] = useState("");
 	const [textToSpeech, setTextToSpeech] = useState("");
@@ -14,10 +16,10 @@ function App() {
 	const translatedTextModalRef = useRef<HTMLDialogElement>(null);
 
 	const translateTextMutation = useMutation({
-		mutationFn: async (text: string) => {
-			const response = await fetch(`${PROD_URL}/translate-text`, {
+		mutationFn: async (textToTranslate: string) => {
+			const response = await fetch(`${LOCAL_URL}/translate-text`, {
 				method: "POST",
-				body: JSON.stringify({ text }),
+				body: JSON.stringify({ textToTranslate }),
 				headers: {
 					"Content-Type": "application/json",
 				},
@@ -44,7 +46,7 @@ function App() {
 
 	const textToSpeachMutation = useMutation({
 		mutationFn: async (text: string) => {
-			const response = await fetch(`${PROD_URL}/text-to-speech`, {
+			const response = await fetch(`${LOCAL_URL}/text-to-speech`, {
 				method: "POST",
 				body: JSON.stringify({ text }),
 				headers: {
@@ -76,7 +78,7 @@ function App() {
 	const handleTranslateTextSubmit = (e: FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		if (textToTranslate) {
-			translateTextMutation.mutate(textToSpeech);
+			translateTextMutation.mutate(textToTranslate);
 		}
 	};
 
@@ -101,7 +103,7 @@ function App() {
 							className="tooltip tooltip-warning"
 							data-tip={
 								!translatedText
-									? "When you translate some text, this button will be enabled"
+									? "When the translation is done, click to see translated text"
 									: "Click to see translated text"
 							}
 						>
@@ -120,13 +122,9 @@ function App() {
 							className="modal"
 						>
 							<div className="modal-box">
-								<h3 className="font-bold text-lg">Hello!</h3>
-								<p className="py-4">
-									Press ESC key or click the button below to close
-								</p>
+								<p className="py-4">{translatedText}</p>
 								<div className="modal-action">
 									<form method="dialog">
-										{/* if there is a button in form, it will close the modal */}
 										<button className="btn">Close</button>
 									</form>
 								</div>
@@ -135,7 +133,7 @@ function App() {
 					</div>
 					<div className="flex flex-col space-y-2">
 						<label className="text-lg">
-							Introduce some text to translate it to Spanish
+							Introduce some text to translate it to Spanish 🇪🇸
 						</label>
 						<textarea
 							className="textarea textarea-bordered w-full"
@@ -145,9 +143,11 @@ function App() {
 						<button
 							type="submit"
 							className="btn btn-outline btn-warning rounded-lg w-full"
-							disabled={textToSpeachMutation.isPending}
+							disabled={translateTextMutation.isPending}
 						>
-							{textToSpeachMutation.isPending ? "Loading..." : "Generate Audio"}
+							{translateTextMutation.isPending
+								? "Loading..."
+								: "Generate Translation"}
 						</button>
 					</div>
 				</form>
@@ -161,7 +161,7 @@ function App() {
 					</div>
 					<div className="flex flex-col space-y-2">
 						<label className="text-lg">
-							Introduce some text to convert it to audio
+							Introduce some text to convert it to audio 🎙️
 						</label>
 						<textarea
 							className="textarea textarea-bordered w-full"
